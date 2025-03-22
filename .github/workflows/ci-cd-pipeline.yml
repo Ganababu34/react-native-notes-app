@@ -12,29 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Install dependencies
         run: npm install
-
+      
       - name: Run tests
         run: npm test
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup SSH Key
-        run: |
-          echo "${{ secrets.NATIVE_BOOK }}" > native-book.pem
-          chmod 600 native-book.pem
-
-      - name: Deploy to AWS EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i native-book.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-            cd /home/ec2-user/react-native-notes-app
-            git pull origin main
-            npm install
-            pm2 restart app || pm2 start npm -- start --name "app"
-          EOF
